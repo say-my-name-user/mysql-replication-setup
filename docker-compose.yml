@@ -1,0 +1,36 @@
+version: '2'
+
+services:
+  source-db:
+    image: mysql
+    command:
+      - mysqld
+      - --init-file=/data/application/init.sql
+    environment:
+      MYSQL_ROOT_PASSWORD: "rootpass"
+    volumes:
+      - ./source/config/my.cnf:/etc/mysql/my.cnf
+      - ./source/init.sql:/data/application/init.sql
+      - ./source/data:/var/lib/mysql
+      - ./source/log:/var/log/mysql
+    networks:
+      - common
+
+  replica-db:
+    image: mysql
+    depends_on:
+      - source-db
+    environment:
+      MYSQL_ROOT_PASSWORD: "rootpass"
+      REPLICA_USER: "replicauser"
+      REPLICA_PASSWORD: "replicapass"
+    volumes:
+      - ./replica/config/my.cnf:/etc/mysql/my.cnf
+      - ./replica/data:/var/lib/mysql
+      - ./replica/log:/var/log/mysql
+    networks:
+      - common
+
+networks:
+  common:
+    driver: bridge
